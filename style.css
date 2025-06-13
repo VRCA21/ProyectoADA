@@ -1,0 +1,106 @@
+.grafica {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border: 1px solid #ccc;
+  background: white;
+  margin-top: 10px;
+  padding: 10px 30px 30px 30px;
+  overflow-x: auto;
+  white-space: nowrap;
+  user-select: none;
+  font-family: monospace;
+}
+
+.bloqueEvento {
+  position: relative;
+  display: inline-block;
+  margin: 0 4px;
+  border-radius: 4px;
+  background-color: #79a6d2;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: bottom;
+  cursor: default;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  font-weight: 600;
+  border: 2px solid transparent;
+  height: 28px;
+  line-height: 18px;
+}
+
+.nombre-ganancia {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-left: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  min-width: 120px;
+  user-select: none;
+}
+
+.fila {
+  position: relative;
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+.numeracion {
+  position: absolute;
+  bottom: 6px;
+  left: 30px;
+  right: 30px;
+  height: 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+  user-select: none;
+}
+
+.numeracion span {
+  display: inline-block;
+  width: 40px;
+  text-align: center;
+  border-left: 1px solid #ccc;
+  line-height: 18px;
+  height: 18px;
+  padding-top: 2px;
+  box-sizing: border-box;
+}
+
+.ganancia-label {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bloqueEvento.evaluado {
+  border-color: orange;
+  box-shadow: 0 0 8px 2px orange;
+  z-index: 10;
+}
+
+.bloqueEvento.seleccionado {
+  background-color: #28a745 !important; /* verde */
+  border-color: #1e7e34 !important;
+  box-shadow: 0 0 10px 3px #28a745;
+}
+
+.bloqueEvento.rechazado {
+  background-color: #dc3545 !important; /* rojo */
+  border-color: #a71d2a !important;
+  box-shadow: 0 0 10px 3px #dc3545;
+}

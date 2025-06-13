@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Animación Programación Dinámica - Eventos Compatibles</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Algoritmo Programación Dinámica: Selección de Eventos Compatibles</h1>
+
+  <section>
+    <h2>Editar Eventos (inicio, fin, ganancia, nombre)</h2>
+    <textarea id="inputEventos" rows="8" style="width:100%; font-family: monospace;">
+[
+  {"inicio":1, "fin":3, "ganancia":5, "nombre":"Evento A"},
+  {"inicio":2, "fin":5, "ganancia":6, "nombre":"Evento B"},
+  {"inicio":4, "fin":6, "ganancia":5, "nombre":"Evento C"},
+  {"inicio":6, "fin":7, "ganancia":4, "nombre":"Evento D"},
+  {"inicio":5, "fin":8, "ganancia":11,"nombre":"Evento E"},
+  {"inicio":7, "fin":9, "ganancia":2, "nombre":"Evento F"}
+]
+    </textarea>
+    <button id="btnCargar">Cargar Eventos</button>
+  </section>
+
+  <section>
+    <h2>Gráfica Fija: Eventos Separados (Visualización inicial)</h2>
+    <div id="graficaSeparados" class="grafica"></div>
+  </section>
+
+  <section>
+    <h2>Gráfica Fija: Eventos Ordenados por Tiempo de Fin (Compatibilidad)</h2>
+    <div id="graficaOrdenada" class="grafica"></div>
+  </section>
+
+  <section>
+    <h2>Animación del Algoritmo (Programación Dinámica)</h2>
+    <button id="btnAnimar">Iniciar Animación</button>
+    <div id="graficaAnimada" class="grafica"></div>
+  </section>
+
+  <script src="main.js"></script>
+</body>
+</html>
