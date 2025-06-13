@@ -16,12 +16,10 @@ function calcularCompatibles(eventosLista) {
   eventosLista.forEach((evento, i) => {
     let grupo = [];
     eventosLista.forEach((ev, j) => {
-      if (i !== j && (ev.inicio >= evento.fin || ev.fin <= evento.inicio)) {
+      if (i === j || ev.inicio >= evento.fin || ev.fin <= evento.inicio) {
         grupo.push(j);
       }
     });
-    grupo.push(i);
-    grupo = [...new Set(grupo)].sort((x, y) => x - y);
     compatiblesGrupos.push(grupo);
   });
   return compatiblesGrupos;
@@ -47,42 +45,6 @@ function dibujarEventosFijos(eventosLista) {
     const info = document.createElement("span");
     info.classList.add("nombre-ganancia");
     info.textContent = `${evento.nombre} (Ganancia: ${evento.ganancia})`;
-    fila.appendChild(info);
-
-    cont.appendChild(fila);
-  });
-
-  agregarNumeracionHorizontal(cont, eventosLista);
-}
-
-function dibujarEventosCompatibles(eventosLista, compatiblesGrupos) {
-  const cont = document.getElementById("graficaOrdenada");
-  cont.innerHTML = "";
-
-  compatiblesGrupos.forEach((grupo, i) => {
-    const fila = document.createElement("div");
-    fila.classList.add("fila");
-
-    grupo.forEach(idx => {
-      const evento = eventosLista[idx];
-      const bloque = document.createElement("div");
-      bloque.classList.add("bloqueEvento");
-      bloque.style.width = (evento.fin - evento.inicio) * 40 + "px";
-      bloque.style.marginLeft = (evento.inicio - 1) * 40 + "px";
-      bloque.id = `compatibles-${i}-${idx}`;
-      bloque.innerHTML = `<span class="labelHora">${evento.inicio} - ${evento.fin}</span>`;
-      fila.appendChild(bloque);
-    });
-
-    const nombresGanancias = grupo.map(idx => {
-      const e = eventosLista[idx];
-      return `${e.nombre} (${e.ganancia})`;
-    }).join(", ");
-
-    const info = document.createElement("span");
-    info.classList.add("nombre-ganancia");
-    info.textContent = nombresGanancias;
-
     fila.appendChild(info);
 
     cont.appendChild(fila);
@@ -144,52 +106,40 @@ function agregarNumeracionHorizontal(contenedor, eventosLista) {
 
 async function animarSeleccionEventos(eventosLista) {
   const eventosOrdenados = [...eventosLista].sort(compararEventos);
-  const n = eventosOrdenados.length;
-
-  const p = new Array(n).fill(-1);
-  for (let j = 0; j < n; j++) {
-    for (let i = j - 1; i >= 0; i--) {
-      if (eventosOrdenados[i].fin <= eventosOrdenados[j].inicio) {
-        p[j] = i;
-        break;
-      }
-    }
-  }
-
-  let M = new Array(n + 1).fill(0);
-
+  const compatiblesGrupos = calcularCompatibles(eventosOrdenados);
   dibujarAnimacion(eventosOrdenados);
 
-  for (let j = 1; j <= n; j++) {
-    marcarEventoAnimado(j - 1, "evaluado");
+  for (let i = 0; i < eventosOrdenados.length; i++) {
+    const grupo = compatiblesGrupos[i];
 
-    const gananciaIncluye = eventosOrdenados[j - 1].ganancia + M[p[j - 1] + 1];
-    const gananciaExcluye = M[j - 1];
-    M[j] = Math.max(gananciaIncluye, gananciaExcluye);
-
-    mostrarGananciaAnimado(j - 1, M[j]);
-
-    await delay(1500);
-
-    if (M[j] === gananciaIncluye) {
-      marcarEventoAnimado(j - 1, "seleccionado");
-      if (p[j - 1] >= 0) marcarEventoAnimado(p[j - 1], "seleccionado");
-    } else {
-      marcarEventoAnimado(j - 1, "rechazado");
+    for (let j = 0; j < eventosOrdenados.length; j++) {
+      if (j < i) {
+        marcarEventoAnimado(j, "gris");
+      } else if (j === i) {
+        marcarEventoAnimado(j, "evaluado");
+      } else if (grupo.includes(j)) {
+        marcarEventoAnimado(j, "compatible");
+      } else {
+        marcarEventoAnimado(j, "incompatible");
+      }
+      await delay(300);
     }
 
     await delay(1000);
   }
 
-  alert("Ganancia máxima total: " + M[n]);
-  marcarCaminoOptimo(eventosOrdenados, p, M);
+  // Cálculo con DP
+  const p = obtenerP(eventosOrdenados);
+  const M = calcularGananciaMaxima(eventosOrdenados, p);
+
+  // Muestra resumen
   mostrarResumenSeleccionados(eventosOrdenados, p, M);
 }
 
 function marcarEventoAnimado(idx, clase) {
   const bloque = document.getElementById(`animado-${idx}`);
   if (!bloque) return;
-  bloque.classList.remove("evaluado", "seleccionado", "rechazado", "\u00f3ptimo");
+  bloque.classList.remove("evaluado", "compatible", "incompatible", "gris");
   bloque.classList.add(clase);
 }
 
@@ -200,34 +150,64 @@ function mostrarGananciaAnimado(idx, ganancia) {
   if (label) label.textContent = "Ganancia DP: " + ganancia;
 }
 
-function marcarCaminoOptimo(eventosOrdenados, p, M) {
-  let j = eventosOrdenados.length;
-  while (j > 0) {
-    if (eventosOrdenados[j - 1].ganancia + (p[j - 1] >= 0 ? M[p[j - 1] + 1] : 0) >= M[j - 1]) {
-      marcarEventoAnimado(j - 1, "\u00f3ptimo");
-      j = p[j - 1] + 1;
-    } else {
-      j = j - 1;
+function obtenerP(eventos) {
+  const p = [];
+  for (let i = 0; i < eventos.length; i++) {
+    let j = i - 1;
+    while (j >= 0 && eventos[j].fin > eventos[i].inicio) {
+      j--;
     }
+    p.push(j);
   }
+  return p;
 }
 
+function calcularGananciaMaxima(eventosOrdenados, p) {
+  const M = [0];
+  for (let i = 0; i < eventosOrdenados.length; i++) {
+    const incl = eventosOrdenados[i].ganancia + (p[i] >= 0 ? M[p[i] + 1] : 0);
+    const excl = M[i];
+    M.push(Math.max(incl, excl));
+  }
+  return M;
+}
+
+
 function mostrarResumenSeleccionados(eventosOrdenados, p, M) {
+  // Limpiar resultados anteriores
+  const resumenPrev = document.getElementById("resumenFinal");
+  if (resumenPrev) resumenPrev.remove();
+
   let j = eventosOrdenados.length;
   let seleccionados = [];
   while (j > 0) {
     if (eventosOrdenados[j - 1].ganancia + (p[j - 1] >= 0 ? M[p[j - 1] + 1] : 0) >= M[j - 1]) {
-      seleccionados.push(eventosOrdenados[j - 1]);
+      seleccionados.push({ ...eventosOrdenados[j - 1], idx: j - 1 });
       j = p[j - 1] + 1;
     } else {
       j = j - 1;
     }
   }
   seleccionados.reverse();
+
+  // Crear resumen
   const resumen = document.createElement("div");
-  resumen.innerHTML = `<h3>Eventos Seleccionados:</h3><ul>` + seleccionados.map(e => `<li>${e.nombre} (${e.inicio}-${e.fin}, Ganancia: ${e.ganancia})</li>`).join("") + `</ul>`;
+  resumen.id = "resumenFinal";
+  resumen.innerHTML = `<h3>Eventos Seleccionados:</h3><ul>` +
+    seleccionados.map(e => `<li>${e.nombre} (${e.inicio}-${e.fin}, Ganancia: ${e.ganancia})</li>`).join("") +
+    `</ul>`;
+
+  const total = seleccionados.reduce((acc, ev) => acc + ev.ganancia, 0);
+  const totalText = document.createElement("p");
+  totalText.innerHTML = `<strong>Ganancia Total: ${total}</strong>`;
+  resumen.appendChild(totalText);
+
   document.getElementById("graficaAnimada").appendChild(resumen);
+
+  // Marcar en verde los seleccionados
+  seleccionados.forEach(ev => marcarEventoAnimado(ev.idx, "seleccionado"));
 }
+
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -235,7 +215,6 @@ function delay(ms) {
 
 function inicializar() {
   dibujarEventosFijos(eventos);
-  dibujarEventosCompatibles(eventos, calcularCompatibles(eventos));
   dibujarAnimacion(eventos);
   document.getElementById("btnAnimar").onclick = () => animarSeleccionEventos(eventos);
 }
