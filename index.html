@@ -1,40 +1,38 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Animación Programación Dinámica - Eventos Compatibles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programación Dinámica - Selección de Eventos</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Algoritmo Programación Dinámica: Selección de Eventos Compatibles</h1>
 
-  <section>
-    <h2>Editar Eventos (inicio, fin, ganancia, nombre)</h2>
-    <textarea id="inputEventos" rows="8" style="width:100%; font-family: monospace;">
-[
-  {"inicio":1, "fin":3, "ganancia":5, "nombre":"Evento A"},
-  {"inicio":2, "fin":5, "ganancia":6, "nombre":"Evento B"},
-  {"inicio":4, "fin":6, "ganancia":5, "nombre":"Evento C"},
-  {"inicio":6, "fin":7, "ganancia":4, "nombre":"Evento D"},
-  {"inicio":5, "fin":8, "ganancia":11,"nombre":"Evento E"},
-  {"inicio":7, "fin":9, "ganancia":2, "nombre":"Evento F"}
-]
-    </textarea>
-    <button id="btnCargar">Cargar Eventos</button>
-  </section>
+  <!-- Panel de edición arriba -->
+  <div id="editorEventos" class="panel-edicion">
+    <h2>Editar eventos</h2>
+    <div id="formulariosEventos"></div>
+    <div style="margin-top: 10px;">
+      <button id="agregarEvento">Agregar nuevo evento</button>
+      <button id="actualizarEventos">Actualizar gráficas</button>
+    </div>
+  </div>
 
-  <section>
-    <h2>Gráfica Fija: Eventos Separados (Visualización inicial)</h2>
-    <div id="graficaSeparados" class="grafica"></div>
-  </section>
+  <!-- Gráficas -->
+  <div class="graficas">
+    <!-- Línea de tiempo fija -->
+    <div class="grafica" id="graficaFija">
+      <h2>Eventos en línea de tiempo</h2>
+      <svg id="svgFija" width="1000" height="300"></svg>
+    </div>
 
-  <section>
-    <h2>Animación del Algoritmo (Programación Dinámica)</h2>
-    <button id="btnAnimar">Iniciar Animación</button>
-    <button id="btnReiniciar">Reiniciar Animación</button>
-    <div id="graficaAnimada" class="grafica"></div>
-  </section>
+    <!-- Animación de programación dinámica -->
+    <div class="grafica" id="graficaAnimada">
+      <h2>Animación de programación dinámica</h2>
+      <svg id="svgAnimada" width="1000" height="300"></svg>
+      <button id="botonAnimar">Reiniciar animación</button>
+    </div>
+  </div>
 
   <script src="main.js"></script>
 </body>
