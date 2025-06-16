@@ -50,6 +50,7 @@ function actualizarEventosDesdeFormulario() {
     ganancia: parseInt(document.getElementById(`ganancia${index}`).value),
   }));
   dibujarEventosFijos(eventos);
+  dibujarEventosAnimados(eventos);
 }
 
 function agregarEvento() {
@@ -120,6 +121,7 @@ function dibujarEventosFijos(eventos) {
     rect.setAttribute("width", width);
     rect.setAttribute("height", 30);
     rect.setAttribute("fill", "#7fa7ff");
+
     svg.appendChild(rect);
 
     // Nombre y ganancia fuera del bloque
@@ -133,68 +135,203 @@ function dibujarEventosFijos(eventos) {
   dibujarEjeX(svg, maxTime);
 }
 
-function animarSeleccionEventos(eventos) {
+function dibujarEventosAnimados(eventos) {
   const svg = document.getElementById("svgAnimada");
   svg.innerHTML = "";
 
-  const sorted = [...eventos].sort((a, b) => a.fin - b.fin);
-  const n = sorted.length;
-  const dp = Array(n).fill(0);
-  const prev = Array(n).fill(-1);
+  const maxTime = Math.max(...eventos.map(e => e.fin));
+
+  eventos.forEach((evento, i) => {
+    const x = evento.inicio * 80;
+    const y = i * 35;
+    const width = (evento.fin - evento.inicio) * 80;
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", x);
+    rect.setAttribute("y", y);
+    rect.setAttribute("width", width);
+    rect.setAttribute("height", 30);
+    rect.setAttribute("id", `bloque-${i}`);
+    rect.setAttribute("class", "normal");
+    svg.appendChild(rect);
+
+    const texto = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    texto.setAttribute("x", x + width + 5);
+    texto.setAttribute("y", y + 20);
+    texto.textContent = `${evento.nombre} ($${evento.ganancia})`;
+    svg.appendChild(texto);
+  });
+
+  dibujarEjeX(svg, maxTime);
+}
+
+
+async function animarEventos(eventos) {
+  const n = eventos.length;
 
   for (let i = 0; i < n; i++) {
-    for (let j = i - 1; j >= 0; j--) {
-      if (sorted[j].fin <= sorted[i].inicio) {
-        prev[i] = j;
-        break;
+    // 1) Resetear colores de todos los bloques a gris o normal
+    resetearColores();
+
+    // 2) Marcar bloque fijo i en verde fijo
+    marcarBloqueVerdeFijo(i);
+
+    // 3) Para cada bloque j > i:
+    //     - Si evento j es compatible con el evento i (inicio_j >= fin_i) -> verde
+    //     - Sino rojo
+    marcarCompatibilidad(i);
+
+    // 4) Para cada bloque j < i:
+    //     - Marcar gris (bloques anteriores al fijo no se validan en esta ronda)
+    marcarBloquesAnterioresGris(i);
+
+    // Esperar un tiempo para que se vea la animación
+    await delay(1500);
+  }
+}
+
+function resetearColores() {
+  eventos.forEach((_, idx) => {
+    const bloque = document.getElementById(`bloque-${idx}`);
+    if (bloque) {
+      bloque.classList.remove("verde-fijo", "verde", "rojo", "gris");
+      bloque.classList.add("normal"); // o gris claro para los no evaluados
+    }
+  });
+}
+
+function marcarBloqueVerdeFijo(idxFijo) {
+  const bloque = document.getElementById(`bloque-${idxFijo}`);
+  if (bloque) {
+    bloque.classList.remove("normal");
+    bloque.classList.add("verde-fijo");
+  }
+}
+
+function marcarCompatibilidad(idxFijo) {
+  const eventoFijo = eventos[idxFijo];
+  eventos.forEach((evento, idx) => {
+    if (idx <= idxFijo) return; // Solo los siguientes
+
+    const bloque = document.getElementById(`bloque-${idx}`);
+    if (!bloque) return;
+
+    if (evento.inicio >= eventoFijo.fin) {
+      bloque.classList.remove("normal", "rojo", "gris");
+      bloque.classList.add("verde");
+    } else {
+      bloque.classList.remove("normal", "verde", "gris");
+      bloque.classList.add("rojo");
+    }
+  });
+}
+
+function marcarBloquesAnterioresGris(idxFijo) {
+  for (let i = 0; i < idxFijo; i++) {
+    const bloque = document.getElementById(`bloque-${i}`);
+    if (bloque) {
+      bloque.classList.remove("normal", "verde", "rojo", "verde-fijo");
+      bloque.classList.add("gris");
+    }
+  }
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function calcularEventosSeleccionados(eventos) {
+  // Ordenar eventos por fin (si no lo están ya)
+  const ordenados = eventos.slice().sort((a,b) => a.fin - b.fin);
+
+  // Calcular p[i]: índice del evento compatible más cercano que termina antes del inicio de evento i
+  const p = [];
+  for (let i = 0; i < ordenados.length; i++) {
+    let j = i - 1;
+    while (j >= 0 && ordenados[j].fin > ordenados[i].inicio) j--;
+    p[i] = j;
+  }
+
+  // Programación dinámica para max ganancia
+  const M = [0];
+  for (let i = 0; i < ordenados.length; i++) {
+    const incluir = ordenados[i].ganancia + (p[i] >= 0 ? M[p[i] + 1] : 0);
+    const excluir = M[i];
+    M[i+1] = Math.max(incluir, excluir);
+  }
+
+  // Reconstruir solución óptima
+  const seleccionados = [];
+  let i = ordenados.length -1;
+  while(i >= 0) {
+    if (ordenados[i].ganancia + (p[i] >= 0 ? M[p[i] +1] : 0) >= M[i]) {
+      seleccionados.unshift(ordenados[i]);
+      i = p[i];
+    } else {
+      i--;
+    }
+  }
+
+  return { seleccionados, gananciaTotal: M[M.length-1] };
+}
+
+function mostrarResumen(resumenData) {
+  // Quitar resumen anterior si existe
+  const resumenPrevio = document.getElementById("resumenFinal");
+  if (resumenPrevio) resumenPrevio.remove();
+
+  const contenedor = document.createElement("div");
+  contenedor.id = "resumenFinal";
+
+  contenedor.innerHTML = `<h3>Eventos Seleccionados:</h3>
+    <ul>
+      ${resumenData.seleccionados.map(e => `<li>${e.nombre} (${e.inicio}-${e.fin}), Ganancia: ${e.ganancia}</li>`).join('')}
+    </ul>
+    <p><strong>Ganancia Total: ${resumenData.gananciaTotal}</strong></p>`;
+
+  document.getElementById("graficaAnimada").appendChild(contenedor);
+
+  // Opcional: pintar bloques seleccionados en verde fijo
+  resumenData.seleccionados.forEach(ev => {
+    const idx = eventos.findIndex(e => e.nombre === ev.nombre && e.inicio === ev.inicio && e.fin === ev.fin);
+    if (idx >= 0) {
+      const bloque = document.getElementById(`bloque-${idx}`);
+      if (bloque) {
+        bloque.classList.remove("normal", "rojo", "verde", "gris");
+        bloque.classList.add("verde-fijo");
       }
     }
-  }
-
-  // Calcular máximo tiempo para el eje
-  const maxTime = Math.max(...sorted.map(e => e.fin));
-
-  function mostrarPaso(i) {
-    svg.innerHTML = "";
-    let y = 0;
-    for (let k = 0; k <= i; k++) {
-      const evento = sorted[k];
-      const x = evento.inicio * 80;
-      const width = (evento.fin - evento.inicio) * 80;
-
-      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      rect.setAttribute("x", x);
-      rect.setAttribute("y", y);
-      rect.setAttribute("width", width);
-      rect.setAttribute("height", 30);
-      rect.setAttribute("fill", "#ffa07a");
-      svg.appendChild(rect);
-
-      const texto = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      texto.setAttribute("x", x + width + 5);
-      texto.setAttribute("y", y + 20);
-      texto.textContent = `${evento.nombre} ($${evento.ganancia})`;
-      svg.appendChild(texto);
-
-      y += 35;
-    }
-
-    dibujarEjeX(svg, maxTime);
-  }
-
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i >= n) {
-      clearInterval(interval);
-      return;
-    }
-    dp[i] = Math.max(
-      sorted[i].ganancia + (prev[i] !== -1 ? dp[prev[i]] : 0),
-      i > 0 ? dp[i - 1] : 0
-    );
-    mostrarPaso(i);
-    i++;
-  }, 1000);
+  });
 }
+
+async function iniciarAnimacionYResumen() {
+  if (eventos.length === 0) return;
+
+  dibujarEventosAnimados(eventos);
+
+  await animarEventos(eventos); // Tu función de animación paso a paso
+  const resumen = calcularEventosSeleccionados(eventos); // Algoritmo DP
+  mostrarResumen(resumen); // Mostrar lista de eventos y ganancia total
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("botonAnimar").addEventListener("click", () => {
+    iniciarAnimacionYResumen(); // Esta es la función que debe manejar la animación
+  });
+
+  document.getElementById("agregarEvento").addEventListener("click", agregarEvento);
+  document.getElementById("actualizarEventos").addEventListener("click", actualizarEventosDesdeFormulario);
+});
+
+
+function inicializar() {
+  generarFormularios();
+  dibujarEventosFijos(eventos);
+  dibujarEventosAnimados(eventos); // <-- Aquí también
+  document.getElementById("actualizarEventos").onclick = actualizarEventosDesdeFormulario;
+  document.getElementById("agregarEvento").onclick = agregarEvento;
+  document.getElementById("botonAnimar").onclick = () => animarSeleccionEventos(eventos);
+}
+
 
 window.onload = inicializar;
