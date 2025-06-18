@@ -2,7 +2,7 @@
 let eventos = [
   { id: 1, nombre: "Clase A", inicio: 1, fin: 3, ganancia: 50 },
   { id: 2, nombre: "Clase B", inicio: 3, fin: 5, ganancia: 20 },
-  { id: 3, nombre: "Clase C", inicio: 0, fin: 6, ganancia: 100 },
+  { id: 3, nombre: "Clase C", inicio: 2, fin: 6, ganancia: 100 },
   { id: 4, nombre: "Clase D", inicio: 5, fin: 7, ganancia: 200 },
   { id: 5, nombre: "Clase E", inicio: 8, fin: 9, ganancia: 30 },
 ];
@@ -22,9 +22,9 @@ function generarFormularios() {
     const div = document.createElement("div");
     div.innerHTML = `
       <label>Nombre:<br><input value="${evento.nombre}" id="nombre${index}" /></label><br>
-      <label>Inicio:<br><input type="number" min="0" value="${evento.inicio}" id="inicio${index}" /></label><br>
-      <label>Fin:<br><input type="number" min="0" value="${evento.fin}" id="fin${index}" /></label><br>
-      <label>Ganancia:<br><input type="number" min="0" value="${evento.ganancia}" id="ganancia${index}" /></label><br>
+      <label>Inicio:<br><input type="number" min="1" max="24" value="${evento.inicio}" id="inicio${index}" /></label><br>
+      <label>Fin:<br><input type="number" min="1" max="24" value="${evento.fin}" id="fin${index}" /></label><br>
+      <label>Ganancia:<br><input type="number" min="1" value="${evento.ganancia}" id="ganancia${index}" /></label><br>
       <button class="eliminarEvento" data-index="${index}">Eliminar</button>
     `;
     contenedor.appendChild(div);
@@ -42,27 +42,41 @@ function generarFormularios() {
 }
 
 function actualizarEventosDesdeFormulario() {
-  eventos = eventos.map((_, index) => ({
-    id: index + 1,
-    nombre: document.getElementById(`nombre${index}`).value,
-    inicio: parseInt(document.getElementById(`inicio${index}`).value),
-    fin: parseInt(document.getElementById(`fin${index}`).value),
-    ganancia: parseInt(document.getElementById(`ganancia${index}`).value),
-  }));
+  const nuevosEventos = [];
+
+  for (let index = 0; index < eventos.length; index++) {
+    const nombre = document.getElementById(`nombre${index}`).value;
+    const inicio = parseInt(document.getElementById(`inicio${index}`).value);
+    const fin = parseInt(document.getElementById(`fin${index}`).value);
+    const ganancia = parseInt(document.getElementById(`ganancia${index}`).value);
+
+    if (
+      isNaN(inicio) || isNaN(fin) ||
+      inicio < 1 || fin > 24 ||
+      inicio >= fin
+    ) {
+      alert(`Error en evento "${nombre}": el horario debe estar entre 1 y 24, y el inicio debe ser menor que el fin.`);
+      return;
+    }
+
+    nuevosEventos.push({ id: index + 1, nombre, inicio, fin, ganancia });
+  }
+
+  eventos = nuevosEventos;
   dibujarEventosFijos(eventos);
-  dibujarEventosAnimados(eventos);
 }
 
 function agregarEvento() {
   eventos.push({
     id: eventos.length + 1,
     nombre: `Evento ${eventos.length + 1}`,
-    inicio: 0,
-    fin: 1,
+    inicio: 1,
+    fin: 2,
     ganancia: 0,
   });
   generarFormularios();
 }
+
 
 // Función para dibujar eje X en svg
 function dibujarEjeX(svg, maxTime) {
@@ -108,7 +122,7 @@ function dibujarEventosFijos(eventos) {
   svg.innerHTML = "";
 
   // Calcular máximo tiempo para el eje
-  const maxTime = Math.max(...eventos.map(e => e.fin));
+  const maxTime = Math.max(24,...eventos.map(e => e.fin));
 
   eventos.forEach((evento, i) => {
     const x = evento.inicio * 80;
@@ -139,7 +153,7 @@ function dibujarEventosAnimados(eventos) {
   const svg = document.getElementById("svgAnimada");
   svg.innerHTML = "";
 
-  const maxTime = Math.max(...eventos.map(e => e.fin));
+  const maxTime = Math.max(24,...eventos.map(e => e.fin));
 
   eventos.forEach((evento, i) => {
     const x = evento.inicio * 80;
@@ -329,7 +343,7 @@ function inicializar() {
   dibujarEventosFijos(eventos);
   dibujarEventosAnimados(eventos); // <-- Aquí también
   document.getElementById("actualizarEventos").onclick = actualizarEventosDesdeFormulario;
-  document.getElementById("agregarEvento").onclick = agregarEvento;
+  //document.getElementById("agregarEvento").onclick = agregarEvento;
   document.getElementById("botonAnimar").onclick = () => animarSeleccionEventos(eventos);
 }
 
