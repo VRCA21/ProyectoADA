@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
-    
+
 }
 
 h2 {
@@ -25,7 +25,7 @@ h2 {
   gap: 10px;
 }
 
-#formulariosEventos > div {
+#formulariosEventos>div {
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 8px;
@@ -60,7 +60,8 @@ button:hover {
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* Permite desplazamiento horizontal */
+  overflow-x: auto;
+  /* Permite desplazamiento horizontal */
 }
 
 svg {
@@ -126,11 +127,25 @@ svg {
 }
 
 /* Colores para animación */
-.evaluado { background-color: orange !important; }
-.compatible { background-color: green !important; }
-.incompatible { background-color: red !important; }
-.gris { background-color: #ccc !important; }
-.seleccionado { background-color: darkgreen !important; }
+.evaluado {
+  background-color: orange !important;
+}
+
+.compatible {
+  background-color: green !important;
+}
+
+.incompatible {
+  background-color: red !important;
+}
+
+.gris {
+  background-color: #ccc !important;
+}
+
+.seleccionado {
+  background-color: darkgreen !important;
+}
 
 /* Numeración horizontal */
 .numeracion {
@@ -186,4 +201,28 @@ text {
 .eje-texto {
   font-size: 12px;
   text-anchor: middle;
+}
+
+.arbol-recursivo {
+  padding: 20px;
+  margin-top: 30px;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: sans-serif;
+}
+
+.nodo-arbol {
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px;
+  background-color: #f0f8ff;
+  position: absolute;
+  min-width: 100px;
+}
+
+.linea-arbol {
+  stroke: #999;
+  stroke-width: 2;
 }
