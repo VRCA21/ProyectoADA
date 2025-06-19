@@ -1,10 +1,10 @@
 // Mantén los eventos iniciales igual
 let eventos = [
-  { id: 1, nombre: "Clase A", inicio: 1, fin: 3, ganancia: 50 },
-  { id: 2, nombre: "Clase B", inicio: 3, fin: 5, ganancia: 20 },
-  { id: 3, nombre: "Clase C", inicio: 2, fin: 6, ganancia: 100 },
-  { id: 4, nombre: "Clase D", inicio: 5, fin: 7, ganancia: 200 },
-  { id: 5, nombre: "Clase E", inicio: 8, fin: 9, ganancia: 30 },
+  { id: 1, nombre: "Evento A", inicio: 1, fin: 3, ganancia: 50 },
+  { id: 2, nombre: "Evento B", inicio: 3, fin: 5, ganancia: 20 },
+  { id: 3, nombre: "Evento C", inicio: 2, fin: 6, ganancia: 100 },
+  { id: 4, nombre: "Evento D", inicio: 5, fin: 7, ganancia: 200 },
+  { id: 5, nombre: "Evento E", inicio: 8, fin: 9, ganancia: 30 },
 ];
 
 function inicializar() {
@@ -153,9 +153,13 @@ function dibujarEventosAnimados(eventos) {
   const svg = document.getElementById("svgAnimada");
   svg.innerHTML = "";
 
-  const maxTime = Math.max(24,...eventos.map(e => e.fin));
+  // Asegurar que el eje llegue a 24 como mínimo
+  const maxTime = Math.max(24, ...eventos.map(e => e.fin));
 
-  eventos.forEach((evento, i) => {
+  // Ordenamos por ganancia descendente (sin modificar el arreglo original)
+  const eventosOrdenados = [...eventos].sort((a, b) => b.ganancia - a.ganancia);
+
+  eventosOrdenados.forEach((evento, i) => {
     const x = evento.inicio * 80;
     const y = i * 35;
     const width = (evento.fin - evento.inicio) * 80;
@@ -165,7 +169,7 @@ function dibujarEventosAnimados(eventos) {
     rect.setAttribute("y", y);
     rect.setAttribute("width", width);
     rect.setAttribute("height", 30);
-    rect.setAttribute("id", `bloque-${i}`);
+    rect.setAttribute("id", `bloque-${eventos.indexOf(evento)}`); // Usa índice original
     rect.setAttribute("class", "normal");
     svg.appendChild(rect);
 
@@ -180,55 +184,46 @@ function dibujarEventosAnimados(eventos) {
 }
 
 
-async function animarEventos(eventos) {
-  const n = eventos.length;
+
+async function animarEventos(eventosOrdenados) {
+  const n = eventosOrdenados.length;
 
   for (let i = 0; i < n; i++) {
-    // 1) Resetear colores de todos los bloques a gris o normal
     resetearColores();
-
-    // 2) Marcar bloque fijo i en verde fijo
-    marcarBloqueVerdeFijo(i);
-
-    // 3) Para cada bloque j > i:
-    //     - Si evento j es compatible con el evento i (inicio_j >= fin_i) -> verde
-    //     - Sino rojo
-    marcarCompatibilidad(i);
-
-    // 4) Para cada bloque j < i:
-    //     - Marcar gris (bloques anteriores al fijo no se validan en esta ronda)
-    marcarBloquesAnterioresGris(i);
-
-    // Esperar un tiempo para que se vea la animación
+    marcarBloqueVerdeFijo(i, eventosOrdenados);
+    marcarCompatibilidad(i, eventosOrdenados);
+    marcarBloquesAnterioresGris(i, eventosOrdenados);
     await delay(1500);
   }
 }
+
 
 function resetearColores() {
   eventos.forEach((_, idx) => {
     const bloque = document.getElementById(`bloque-${idx}`);
     if (bloque) {
       bloque.classList.remove("verde-fijo", "verde", "rojo", "gris");
-      bloque.classList.add("normal"); // o gris claro para los no evaluados
+      bloque.classList.add("normal");
     }
   });
 }
 
-function marcarBloqueVerdeFijo(idxFijo) {
-  const bloque = document.getElementById(`bloque-${idxFijo}`);
+function marcarBloqueVerdeFijo(idxFijo, eventosOrdenados) {
+  const originalIdx = eventos.indexOf(eventosOrdenados[idxFijo]);
+  const bloque = document.getElementById(`bloque-${originalIdx}`);
   if (bloque) {
     bloque.classList.remove("normal");
     bloque.classList.add("verde-fijo");
   }
 }
 
-function marcarCompatibilidad(idxFijo) {
-  const eventoFijo = eventos[idxFijo];
-  eventos.forEach((evento, idx) => {
-    if (idx <= idxFijo) return; // Solo los siguientes
+function marcarCompatibilidad(idxFijo, eventosOrdenados) {
+  const eventoFijo = eventosOrdenados[idxFijo];
 
-    const bloque = document.getElementById(`bloque-${idx}`);
-    if (!bloque) return;
+  eventosOrdenados.forEach((evento, idx) => {
+    const originalIdx = eventos.indexOf(evento);
+    const bloque = document.getElementById(`bloque-${originalIdx}`);
+    if (!bloque || idx <= idxFijo) return;
 
     if (evento.inicio >= eventoFijo.fin) {
       bloque.classList.remove("normal", "rojo", "gris");
@@ -240,9 +235,10 @@ function marcarCompatibilidad(idxFijo) {
   });
 }
 
-function marcarBloquesAnterioresGris(idxFijo) {
+function marcarBloquesAnterioresGris(idxFijo, eventosOrdenados) {
   for (let i = 0; i < idxFijo; i++) {
-    const bloque = document.getElementById(`bloque-${i}`);
+    const originalIdx = eventos.indexOf(eventosOrdenados[i]);
+    const bloque = document.getElementById(`bloque-${originalIdx}`);
     if (bloque) {
       bloque.classList.remove("normal", "verde", "rojo", "verde-fijo");
       bloque.classList.add("gris");
@@ -321,12 +317,12 @@ function mostrarResumen(resumenData) {
 async function iniciarAnimacionYResumen() {
   if (eventos.length === 0) return;
 
-  dibujarEventosAnimados(eventos);
-
-  await animarEventos(eventos); // Tu función de animación paso a paso
-  const resumen = calcularEventosSeleccionados(eventos); // Algoritmo DP
-  mostrarResumen(resumen); // Mostrar lista de eventos y ganancia total
+  const eventosOrdenados = [...eventos].sort((a, b) => b.ganancia - a.ganancia);
+  await animarEventos(eventosOrdenados); // Animación en orden por ganancia
+  const resumen = calcularEventosSeleccionados(eventos); // Usamos el orden original para DP
+  mostrarResumen(resumen);
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("botonAnimar").addEventListener("click", () => {
