@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Programación Dinámica - Selección de Eventos</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
 
+<body>
+  <h1 style="border-radius: 1rem;" id="h1-1" class="titulo">Programacion Dinamica-Seleccion de eventos</h1>
+
+  <div class = "grafica">
+    <img src="/EscudoESCOM.png" alt="escudo" id="escudoIMG">
+  </div>
   <!-- Panel de edición-->
   <div id="editorEventos" class="panel-edicion">
-    <h2>Editar eventos</h2>
+    <h2 id="h1-1">Editar eventos</h2>
     <div id="formulariosEventos"></div>
     <div style="margin-top: 10px;">
       <button id="agregarEvento">Agregar nuevo evento</button>
@@ -21,14 +27,14 @@
   <!-- Gráficas -->
   <div class="graficas">
     <div class="grafica" id="graficaFija">
-      <h2>Eventos en línea de tiempo</h2>
-      <svg id="svgFija" width="1950" height="300"></svg>
+      <h2 id="h1-1">Eventos en línea de tiempo</h2>
+      <svg style="border-radius: 1rem;" id="svgFija" width="1950" height="300"></svg>
     </div>
 
     <!-- Animación de programación dinámica -->
     <div class="grafica" id="graficaAnimada">
-      <h2>Animación de programación dinámica</h2>
-      <svg id="svgAnimada" width="1950" height="300"></svg>
+      <h2 id="h1-1">Animación de programación dinámica</h2>
+      <svg style="border-radius: 1rem;" id="svgAnimada" width="1950" height="300"></svg>
       <button id="botonAnimar">Reiniciar animación</button>
     </div>
   </div>
@@ -38,6 +44,39 @@
     <svg id="svgArbol" width="1200" height="600"></svg>
   </div>-->
 
+  <!--<legend class="formu">contactanos llenando el formulario</legend>
+  <div>
+    <label class="contacto">Nombre</label>
+    <input type="text" placeholder="Tu Nombre">
+  </div>
+
+  <div>
+    <label class="contacto">Telefono</label>
+    <input type="tel" placeholder="Tu Telefono">
+  </div>
+
+  <div>
+    <label class="contacto">Correo</label>
+    <input type="email" placeholder="Tu Email">
+  </div>
+
+  <div>
+    <label class="contacto">Mensaje</label>
+    <textarea></textarea>
+  </div>
+  <div>
+    <input class="boton" type="submit" value="Enviar">
+  </div>
+  </fieldset>
+  </form>-->
+
+  <footer id="h2-1">Estos algoritmos fueron creados por: <br> Andrade Ayala MAria Fernanda <br> Ramos Sanchez Jared
+    <br>
+    Rosas Lezama Carlos <br>
+    Valencia Resendiz Carlos Alfonso <br> Victoria Alvarado Luis Fabian
+  </footer>
+
   <script src="main.js"></script>
 </body>
+
 </html>
